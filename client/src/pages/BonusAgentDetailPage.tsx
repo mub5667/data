@@ -10,33 +10,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Search } from "lucide-react";
 
-// Type definitions
-interface Agent {
-  id: string;
-  name: string;
-}
-
-interface Student {
-  id: string;
-  name: string;
-  uni: string;
-  program: string;
-}
-
-interface AgentBonus {
-  id: string;
-  agentId: string;
-  studentName: string;
-  uni: string;
-  program: string;
-  month: string;
-  tuitionFeesPayment: string;
-  enrollment: string;
-  enrollmentBonus: number;
-  visaBonus: number;
-  commissionFromUni: string;
-  createdAt: string;
-}
 
 export default function BonusAgentDetailPage() {
   const { agentSlug } = useParams();
@@ -62,7 +35,7 @@ export default function BonusAgentDetailPage() {
       }
       const agents = await response.json();
       // Find agent by name (converted to slug) instead of by ID
-      const agent = agents.find((a: Agent) => 
+      const agent = agents.find((a: any) => 
         a.name.toLowerCase().replace(/\s+/g, '-') === agentSlug
       );
       if (!agent) {
@@ -73,7 +46,7 @@ export default function BonusAgentDetailPage() {
   });
 
   // Fetch agent bonuses
-  const { data: bonuses = [], isLoading: isBonusesLoading } = useQuery({
+  const { data: bonuses = [], isLoading: isBonusesLoading } = useQuery<any[]>({
     queryKey: ["agent-bonuses", agentSlug, agent?.id],
     queryFn: async () => {
       if (!agent) return [];
@@ -82,7 +55,9 @@ export default function BonusAgentDetailPage() {
       if (!response.ok) {
         throw new Error("Failed to fetch agent bonuses");
       }
-      return response.json() as Promise<AgentBonus[]>;
+      const data = await response.json();
+      console.log("Fetched agent bonuses:", data); // Debug log
+      return data as any[];
     },
     enabled: !!agent?.id,
   });
@@ -96,11 +71,11 @@ export default function BonusAgentDetailPage() {
   // Search student by passport number
   const searchStudentMutation = useMutation({
     mutationFn: async (passportNumber: string) => {
-      const response = await fetch(`/api/students/search?passportNumber=${passportNumber}`);
+      const response = await fetch(`/api/students/search?passport=${passportNumber}`);
       if (!response.ok) {
         throw new Error("Student not found");
       }
-      return response.json() as Promise<Student>;
+      return response.json() as Promise<any>;
     },
     onSuccess: (student) => {
       setIsAddBonusOpen(true);
@@ -122,24 +97,45 @@ export default function BonusAgentDetailPage() {
   const addBonusMutation = useMutation({
     mutationFn: async (data: { 
       agentId: string; 
-      studentId: string; 
-      passportNumber: string;
+      studentName: string; 
+      uni: string;
+      program: string;
       month: string;
       enrollment: string;
       enrollmentBonus: number;
       visaBonus: number;
       commissionFromUni: string;
     }) => {
-      const response = await fetch("/api/agent-bonuses", {
+      // Build a payload compatible with all server handlers
+      const student = searchStudentMutation.data as any;
+      const payload = {
+        // Fields required by the earliest matching route
+        agentId: data.agentId,
+        studentId: student?.id || undefined,
+        passportNumber: student?.passportNumber || undefined,
+        month: data.month || "",
+        enrollmentStatus: data.enrollment || "",
+        enrollmentBonus: Number(data.enrollmentBonus) || 0,
+        visaBonus: Number(data.visaBonus) || 0,
+        commissionFromUni: Number(data.commissionFromUni) || 0,
+        // Additional fields used by other handlers/storage
+        studentName: data.studentName || student?.name || "",
+        uni: data.uni || student?.uni || "",
+        program: data.program || student?.program || "",
+        enrollment: data.enrollment || "",
+      };
+
+      const response = await fetch(`/api/agent-bonuses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       
       if (!response.ok) {
-        throw new Error("Failed to add bonus");
+        const text = await response.text();
+        throw new Error(text || "Failed to add bonus");
       }
       
       return response.json();
@@ -151,7 +147,7 @@ export default function BonusAgentDetailPage() {
         description: "Bonus added successfully",
       });
       setIsAddBonusOpen(false);
-      setPassportNumber("");
+      
       setBonusData({
         month: "",
         enrollment: "",
@@ -192,8 +188,9 @@ export default function BonusAgentDetailPage() {
     
     addBonusMutation.mutate({
       agentId: agent.id, // Use the actual agent ID, not the slug
-      studentId: searchStudentMutation.data.id,
-      passportNumber: searchStudentMutation.data.passportNumber,
+      studentName: searchStudentMutation.data.name,
+      uni: searchStudentMutation.data.uni,
+      program: searchStudentMutation.data.program,
       month: bonusData.month,
       enrollment: bonusData.enrollment,
       enrollmentBonus: bonusData.enrollmentBonus,
@@ -213,11 +210,7 @@ export default function BonusAgentDetailPage() {
       label: "Month",
       render: (value: any) => value || "N/A"
     },
-    { 
-      key: "tuitionFeesPayment", 
-      label: "Tuition Fees Payment",
-      render: (value: any) => value || "N/A"
-    },
+  
     { 
       key: "enrollment", 
       label: "Enrollment",
@@ -267,13 +260,15 @@ export default function BonusAgentDetailPage() {
     mutationFn: ({ id, data }: { id: string; data: any }) => {
       // Remove the 'no' field before sending to API since it's frontend-only
       const { no, ...dataWithoutNo } = data;
+      console.log("Updating record with ID:", id, "Data:", dataWithoutNo);
       return makeApiRequest(`/api/agent-bonuses/${id}`, "PUT", dataWithoutNo);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent-bonuses", agentSlug] });
+      queryClient.invalidateQueries({ queryKey: ["agent-bonuses", agentSlug, agent?.id] });
       toast({ title: "Agent bonus record updated successfully" });
     },
     onError: (error: any) => {
+      console.error("Update error:", error);
       toast({ 
         title: "Error updating record", 
         description: error.message,
@@ -284,12 +279,16 @@ export default function BonusAgentDetailPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => makeApiRequest(`/api/agent-bonuses/${id}`, "DELETE"),
+    mutationFn: (id: string) => {
+      console.log("Deleting record with ID:", id);
+      return makeApiRequest(`/api/agent-bonuses/${id}`, "DELETE");
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent-bonuses", agentSlug] });
+      queryClient.invalidateQueries({ queryKey: ["agent-bonuses", agentSlug, agent?.id] });
       toast({ title: "Agent bonus record deleted successfully" });
     },
     onError: (error: any) => {
+      console.error("Delete error:", error);
       toast({ 
         title: "Error deleting record", 
         description: error.message,
@@ -331,7 +330,7 @@ export default function BonusAgentDetailPage() {
               <DialogTrigger asChild>
                 <Button>Add New Bonus</Button>
               </DialogTrigger>
-              <DialogContent>
+            <DialogContent className="max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Search Student by Passport</DialogTitle>
                 </DialogHeader>
@@ -356,7 +355,7 @@ export default function BonusAgentDetailPage() {
 
       {searchStudentMutation.data && (
         <Dialog open={isAddBonusOpen} onOpenChange={setIsAddBonusOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Bonus for {searchStudentMutation.data.name}</DialogTitle>
             </DialogHeader>
@@ -449,7 +448,24 @@ export default function BonusAgentDetailPage() {
           title="Agent Bonus Records"
           data={dataWithRowNumbers}
           columns={columns}
-          onAdd={(row) => addBonusMutation.mutate(row)}
+          onAdd={() => {
+            // Use the searched student's details together with the form state
+            if (!searchStudentMutation.data) {
+              toast({ title: "Error", description: "Please search for a student first", variant: "destructive" });
+              return;
+            }
+            addBonusMutation.mutate({
+              agentId: agent.id,
+              studentName: searchStudentMutation.data.name,
+              uni: searchStudentMutation.data.uni,
+              program: searchStudentMutation.data.program,
+              month: bonusData.month,
+              enrollment: bonusData.enrollment,
+              enrollmentBonus: bonusData.enrollmentBonus,
+              visaBonus: bonusData.visaBonus,
+              commissionFromUni: bonusData.commissionFromUni,
+            });
+          }}
           onEdit={(id, row) => updateMutation.mutate({ id, data: row })}
           onDelete={(id) => deleteMutation.mutate(id)}
           datasetName="agent-bonus"

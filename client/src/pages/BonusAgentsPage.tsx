@@ -87,7 +87,7 @@ export default function BonusAgentsPage() {
       // Check which predefined agents are not already in the list
       const existingAgentNames = agents.map((agent: any) => agent.name.toLowerCase());
       const agentsToAdd = PREDEFINED_AGENTS.filter(
-        name => !existingAgentNames.some(existing => 
+        name => !existingAgentNames.some((existing: string) =>
           existing.includes(name.toLowerCase()) || 
           name.toLowerCase().includes(existing)
         )

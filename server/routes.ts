@@ -163,33 +163,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add agent bonus
   app.post("/api/agent-bonuses", async (req, res) => {
     try {
-      const { 
-        agentId, 
-        studentId, 
-        passportNumber, 
-        month, 
-        enrollmentStatus,
-        enrollmentBonus, 
-        visaBonus, 
-        commissionFromUni 
-      } = req.body;
-      
-      if (!agentId || !studentId || !passportNumber) {
-        return res.status(400).json({ error: "Agent ID, student ID, and passport number are required" });
-      }
-      
-      const bonus = await sqliteStorage.addAgentBonus({
+      const {
         agentId,
+        // optional student identity fields (not stored in agent_bonus)
         studentId,
         passportNumber,
+        // agent_bonus fields
+        studentName,
+        uni,
+        program,
         month,
-        enrollmentStatus,
+        enrollment,
+        enrollmentStatus, // accept either "enrollment" or "enrollmentStatus"
+        enrollmentBonus,
+        visaBonus,
+        commissionFromUni,
+      } = req.body;
+
+      if (!agentId) {
+        return res.status(400).json({ error: "Agent ID is required" });
+      }
+
+      const payload = {
+        agentId,
+        studentName: (studentName || "").toString(),
+        uni: (uni || "").toString(),
+        program: (program || "").toString(),
+        month: (month || "").toString(),
+        enrollment: (enrollment || enrollmentStatus || "").toString(),
         enrollmentBonus: Number(enrollmentBonus) || 0,
         visaBonus: Number(visaBonus) || 0,
-        commissionFromUni: Number(commissionFromUni) || 0
-      });
-      
-      res.status(201).json(bonus);
+        commissionFromUni: commissionFromUni?.toString?.() ?? "0",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (!payload.studentName) {
+        return res.status(400).json({ error: "studentName is required" });
+      }
+
+      const newBonus = await sqliteStorage.addAgentBonusRecord(payload as any);
+      res.status(201).json(newBonus);
     } catch (error) {
       console.error("Error adding agent bonus:", error);
       res.status(500).json({ error: "Failed to add agent bonus" });
@@ -527,21 +541,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/agent-bonuses", async (req, res) => {
     try {
-      const { agentId, studentId, passportNumber, month, enrollmentBonus, visaBonus, commissionFromUni } = req.body;
+      const { agentId, studentName, uni, program, month, enrollment, enrollmentBonus, visaBonus, commissionFromUni } = req.body;
       
       if (!agentId) {
         return res.status(400).json({ error: "Agent ID is required" });
       }
       
-      if (!passportNumber) {
-        return res.status(400).json({ error: "Passport number is required" });
-      }
-      
+     
       // Create new agent bonus record
       const newBonus = await sqliteStorage.addAgentBonusRecord({
-        agentId,
-        studentId,
-        passportNumber,
+        agentId:agentId || '',
+        studentName:studentName || '',
+        uni:uni || '',
+        program:program || '',
         month: month || '',
         enrollmentBonus: enrollmentBonus || 0,
         visaBonus: visaBonus || 0,
@@ -554,6 +566,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating agent bonus:", error);
       res.status(500).json({ error: "Failed to create agent bonus" });
+    }
+  });
+  
+  // Update agent bonus by ID
+  app.put("/api/agent-bonuses/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      // Check if the bonus exists
+      const existingBonus = await sqliteStorage.getAgentBonusById(id);
+      if (!existingBonus) {
+        return res.status(404).json({ error: "Agent bonus record not found" });
+      }
+      
+      // Update the bonus record
+      const updatedBonus = await sqliteStorage.updateAgentBonus(id, updateData);
+      res.json(updatedBonus);
+    } catch (error) {
+      console.error(`Error updating agent bonus ${req.params.id}:`, error);
+      res.status(500).json({ error: "Failed to update agent bonus" });
+    }
+  });
+  
+  // Delete agent bonus by ID
+  app.delete("/api/agent-bonuses/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if the bonus exists
+      const existingBonus = await sqliteStorage.getAgentBonusById(id);
+      if (!existingBonus) {
+        return res.status(404).json({ error: "Agent bonus record not found" });
+      }
+      
+      // Delete the bonus record
+      await sqliteStorage.deleteAgentBonus(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error(`Error deleting agent bonus ${req.params.id}:`, error);
+      res.status(500).json({ error: "Failed to delete agent bonus" });
     }
   });
   
@@ -818,6 +871,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!success) return res.status(404).json({ error: "Record not found" });
     res.json({ success: true });
   });
+  
+  // SENT INVOICES Routes
+  app.get("/api/sent-invoices", async (req, res) => {
+    const data = await sqliteStorage.getSentInvoicesData();
+    res.json(data);
+  });
+
+  app.post("/api/sent-invoices", async (req, res) => {
+    const record = await sqliteStorage.addSentInvoiceRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/sent-invoices/:id", async (req, res) => {
+    const record = await sqliteStorage.updateSentInvoiceRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/sent-invoices/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteSentInvoiceRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+  
+  // UCSI Routes
+  app.get("/api/ucsi", async (req, res) => {
+    const data = await sqliteStorage.getUcsiData();
+    res.json(data);
+  });
+
+  app.post("/api/ucsi", async (req, res) => {
+    const record = await sqliteStorage.addUcsiRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/ucsi/:id", async (req, res) => {
+    const record = await sqliteStorage.updateUcsiRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/ucsi/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteUcsiRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+  
+  // UCSI INVOICES Routes
+  app.get("/api/ucsi-invoices", async (req, res) => {
+    const data = await sqliteStorage.getUcsiInvoiceData();
+    res.json(data);
+  });
+
+  app.post("/api/ucsi-invoices", async (req, res) => {
+    const record = await sqliteStorage.addUcsiInvoiceRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/ucsi-invoices/:id", async (req, res) => {
+    const record = await sqliteStorage.updateUcsiInvoiceRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/ucsi-invoices/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteUcsiInvoiceRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+  
+  // Income Outcome Routes
+  app.get("/api/incomeoutcome", async (req, res) => {
+    const data = await sqliteStorage.getIncomeOutcomeData();
+    res.json(data);
+  });
+  
+  app.get("/api/incomeoutcome/country/:country", async (req, res) => {
+    const data = await sqliteStorage.getIncomeOutcomeByCountry(req.params.country);
+    res.json(data);
+  });
+
+  app.post("/api/incomeoutcome", async (req, res) => {
+    const record = await sqliteStorage.addIncomeOutcomeRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/incomeoutcome/:id", async (req, res) => {
+    const record = await sqliteStorage.updateIncomeOutcomeRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/incomeoutcome/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteIncomeOutcomeRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
 
   // ADV BILLS Routes
   app.get("/api/adv-bills", async (req, res) => {
@@ -838,6 +988,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/adv-bills/:id", async (req, res) => {
     const success = await sqliteStorage.deleteAdvBillRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Subagent Routes
+  app.get("/api/subagent", async (req, res) => {
+    const data = await sqliteStorage.getSubagentData();
+    res.json(data);
+  });
+
+  app.post("/api/subagent", async (req, res) => {
+    const record = await sqliteStorage.addSubagentRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/subagent/:id", async (req, res) => {
+    const record = await sqliteStorage.updateSubagentRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/subagent/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteSubagentRecord(req.params.id);
     if (!success) return res.status(404).json({ error: "Record not found" });
     res.json({ success: true });
   });
@@ -1215,9 +1388,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data = await sqliteStorage.getInvoiceData();
         filename = "INVOICES.xlsx";
         break;
+      case "sent-invoices":
+        data = await sqliteStorage.getSentInvoiceData();
+        filename = "SENT_INVOICES.xlsx";
+        break;
+      case "ucsi":
+        data = await sqliteStorage.getUcsiData();
+        filename = "UCSI.xlsx";
+        break;
+      case "ucsi-invoices":
+        data = await sqliteStorage.getUcsiInvoiceData();
+        filename = "UCSI_INVOICES.xlsx";
+        break;
       case "adv-bill":
         data = await sqliteStorage.getAdvBillData();
         filename = "ADV_BILLS_2025_2026.xlsx";
+        break;
+      case "subagent":
+        data = await sqliteStorage.getSubagentData();
+        filename = "SUBAGENT_2025_2026.xlsx";
         break;
       case "bonus":
         data = await sqliteStorage.getBonusData();
@@ -1262,6 +1451,443 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
+  });
+
+  // Events Routes
+  app.get("/api/events", async (req, res) => {
+    const data = await sqliteStorage.getEventsData();
+    res.json(data);
+  });
+
+  app.post("/api/events", async (req, res) => {
+    const record = await sqliteStorage.addEventsRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/events/:id", async (req, res) => {
+    const record = await sqliteStorage.updateEventsRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/events/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteEventsRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Salaries Routes
+  app.get("/api/salaries", async (req, res) => {
+    const data = await sqliteStorage.getSalariesData();
+    res.json(data);
+  });
+
+  app.post("/api/salaries", async (req, res) => {
+    const record = await sqliteStorage.addSalariesRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/salaries/:id", async (req, res) => {
+    const record = await sqliteStorage.updateSalariesRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/salaries/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteSalariesRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Services Routes
+  app.get("/api/services", async (req, res) => {
+    const data = await sqliteStorage.getServicesData();
+    res.json(data);
+  });
+
+  app.post("/api/services", async (req, res) => {
+    const record = await sqliteStorage.addServicesRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/services/:id", async (req, res) => {
+    const record = await sqliteStorage.updateServicesRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/services/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteServicesRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Student Hotel Routes
+  app.get("/api/student-hotel", async (req, res) => {
+    const data = await sqliteStorage.getStudentHotelData();
+    res.json(data);
+  });
+
+  app.post("/api/student-hotel", async (req, res) => {
+    const record = await sqliteStorage.addStudentHotelRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/student-hotel/:id", async (req, res) => {
+    const record = await sqliteStorage.updateStudentHotelRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/student-hotel/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteStudentHotelRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Student Flight Ticket Routes
+  app.get("/api/student-flight-ticket", async (req, res) => {
+    const data = await sqliteStorage.getStudentFlightTicketData();
+    res.json(data);
+  });
+
+  app.post("/api/student-flight-ticket", async (req, res) => {
+    const record = await sqliteStorage.addStudentFlightTicketRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/student-flight-ticket/:id", async (req, res) => {
+    const record = await sqliteStorage.updateStudentFlightTicketRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/student-flight-ticket/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteStudentFlightTicketRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Authentication Papers Routes
+  app.get("/api/authentication-papers", async (req, res) => {
+    const data = await sqliteStorage.getAuthenticationPapersData();
+    res.json(data);
+  });
+
+  app.post("/api/authentication-papers", async (req, res) => {
+    const record = await sqliteStorage.addAuthenticationPapersRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/authentication-papers/:id", async (req, res) => {
+    const record = await sqliteStorage.updateAuthenticationPapersRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/authentication-papers/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteAuthenticationPapersRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Student Visa Routes
+  app.get("/api/student-visa", async (req, res) => {
+    const data = await sqliteStorage.getStudentVisaData();
+    res.json(data);
+  });
+
+  app.post("/api/student-visa", async (req, res) => {
+    const record = await sqliteStorage.addStudentVisaRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/student-visa/:id", async (req, res) => {
+    const record = await sqliteStorage.updateStudentVisaRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/student-visa/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteStudentVisaRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Application Fees Routes
+  app.get("/api/application-fees", async (req, res) => {
+    const data = await sqliteStorage.getApplicationFeesData();
+    res.json(data);
+  });
+
+  app.post("/api/application-fees", async (req, res) => {
+    const record = await sqliteStorage.addApplicationFeesRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/application-fees/:id", async (req, res) => {
+    const record = await sqliteStorage.updateApplicationFeesRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/application-fees/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteApplicationFeesRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Airline Tickets Routes
+  app.get("/api/airline-tickets", async (req, res) => {
+    const data = await sqliteStorage.getAirlineTicketsData();
+    res.json(data);
+  });
+
+  app.post("/api/airline-tickets", async (req, res) => {
+    const record = await sqliteStorage.addAirlineTicketsRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/airline-tickets/:id", async (req, res) => {
+    const record = await sqliteStorage.updateAirlineTicketsRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/airline-tickets/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteAirlineTicketsRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Rent Routes
+  app.get("/api/rent", async (req, res) => {
+    const data = await sqliteStorage.getRentData();
+    res.json(data);
+  });
+
+  app.post("/api/rent", async (req, res) => {
+    const record = await sqliteStorage.addRentRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/rent/:id", async (req, res) => {
+    const record = await sqliteStorage.updateRentRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/rent/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteRentRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Lawyer Tax Contract Routes
+  app.get("/api/lawyer-tax-contract", async (req, res) => {
+    const data = await sqliteStorage.getLawyerTaxContractData();
+    res.json(data);
+  });
+
+  app.post("/api/lawyer-tax-contract", async (req, res) => {
+    const record = await sqliteStorage.addLawyerTaxContractRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/lawyer-tax-contract/:id", async (req, res) => {
+    const record = await sqliteStorage.updateLawyerTaxContractRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/lawyer-tax-contract/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteLawyerTaxContractRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Bills Routes
+  app.get("/api/bills", async (req, res) => {
+    const data = await sqliteStorage.getBillsData();
+    res.json(data);
+  });
+
+  app.post("/api/bills", async (req, res) => {
+    const record = await sqliteStorage.addBillsRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/bills/:id", async (req, res) => {
+    const record = await sqliteStorage.updateBillsRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/bills/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteBillsRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Maintenance Routes
+  app.get("/api/maintenance", async (req, res) => {
+    const data = await sqliteStorage.getMaintenanceData();
+    res.json(data);
+  });
+
+  app.post("/api/maintenance", async (req, res) => {
+    const record = await sqliteStorage.addMaintenanceRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/maintenance/:id", async (req, res) => {
+    const record = await sqliteStorage.updateMaintenanceRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/maintenance/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteMaintenanceRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Medical Expenses Routes
+  app.get("/api/medical-expenses", async (req, res) => {
+    const data = await sqliteStorage.getMedicalExpensesData();
+    res.json(data);
+  });
+
+  app.post("/api/medical-expenses", async (req, res) => {
+    const record = await sqliteStorage.addMedicalExpensesRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/medical-expenses/:id", async (req, res) => {
+    const record = await sqliteStorage.updateMedicalExpensesRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/medical-expenses/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteMedicalExpensesRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // General Expenses Routes
+  app.get("/api/general-expenses", async (req, res) => {
+    const data = await sqliteStorage.getGeneralExpensesData();
+    res.json(data);
+  });
+
+  app.post("/api/general-expenses", async (req, res) => {
+    const record = await sqliteStorage.addGeneralExpensesRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/general-expenses/:id", async (req, res) => {
+    const record = await sqliteStorage.updateGeneralExpensesRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/general-expenses/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteGeneralExpensesRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Social Media Routes
+  app.get("/api/social-media", async (req, res) => {
+    const data = await sqliteStorage.getSocialMediaData();
+    res.json(data);
+  });
+
+  app.post("/api/social-media", async (req, res) => {
+    const record = await sqliteStorage.addSocialMediaRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/social-media/:id", async (req, res) => {
+    const record = await sqliteStorage.updateSocialMediaRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/social-media/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteSocialMediaRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Trip Travel Bonus Routes
+  app.get("/api/trip-travel-bonus", async (req, res) => {
+    const data = await sqliteStorage.getTripTravelBonusData();
+    res.json(data);
+  });
+
+  app.post("/api/trip-travel-bonus", async (req, res) => {
+    const record = await sqliteStorage.addTripTravelBonusRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/trip-travel-bonus/:id", async (req, res) => {
+    const record = await sqliteStorage.updateTripTravelBonusRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/trip-travel-bonus/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteTripTravelBonusRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Employee Visa Routes
+  app.get("/api/employee-visa", async (req, res) => {
+    const data = await sqliteStorage.getEmployeeVisaData();
+    res.json(data);
+  });
+
+  app.post("/api/employee-visa", async (req, res) => {
+    const record = await sqliteStorage.addEmployeeVisaRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/employee-visa/:id", async (req, res) => {
+    const record = await sqliteStorage.updateEmployeeVisaRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/employee-visa/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteEmployeeVisaRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
+  });
+
+  // Money Transfer Routes
+  app.get("/api/money-transfer", async (req, res) => {
+    const data = await sqliteStorage.getMoneyTransferData();
+    res.json(data);
+  });
+
+  app.post("/api/money-transfer", async (req, res) => {
+    const record = await sqliteStorage.addMoneyTransferRecord(req.body);
+    res.json(record);
+  });
+
+  app.put("/api/money-transfer/:id", async (req, res) => {
+    const record = await sqliteStorage.updateMoneyTransferRecord(req.params.id, req.body);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    res.json(record);
+  });
+
+  app.delete("/api/money-transfer/:id", async (req, res) => {
+    const success = await sqliteStorage.deleteMoneyTransferRecord(req.params.id);
+    if (!success) return res.status(404).json({ error: "Record not found" });
+    res.json({ success: true });
   });
 
   const httpServer = createServer(app);

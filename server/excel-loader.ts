@@ -75,13 +75,34 @@ export function loadInvoiceData(): InvoiceRecord[] {
 }
 
 export function loadAdvBillData(): AdvBillRecord[] {
-  const workbook = XLSX.readFile('attached_assets/ADV BILLS 2025 - 2026_1759717117631.xlsx');
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const workbook = XLSX.readFile('attached_assets/ADV BILLS 2025 - 2026.xlsx');
+  const sheet = workbook.Sheets['ADV Bills'] || workbook.Sheets[workbook.SheetNames[0]];
   const data = XLSX.utils.sheet_to_json(sheet);
   
   return data.map((row: any) => ({
     id: randomUUID(),
-    amount: row['RM1,500.00'] || 0,
+    no: row['No'] || row['NO'] || 0,
+    billId: String(row['Bill id'] || row['Bill ID'] || row['BILL ID'] || ''),
+    date: excelDateToString(row['Date']),
+    description: String(row['Description'] || ''),
+    amount: Number(row['Amount'] || row['AMOUNT'] || 0),
+  }));
+}
+
+export function loadSubagentData(): any[] {
+  const workbook = XLSX.readFile('attached_assets/ADV BILLS 2025 - 2026.xlsx');
+  const sheet = workbook.Sheets['Subagent'];
+  if (!sheet) return [];
+  const data = XLSX.utils.sheet_to_json(sheet);
+  return data.map((row: any) => ({
+    id: randomUUID(),
+    no: row['No'] || row['NO'] || 0,
+    subagentName: String(row['Subagent name'] || row['Subagent Name'] || ''),
+    date: excelDateToString(row['Date']),
+    ref: String(row['REF'] || ''),
+    referralCommissionOn: String(row['Referral commission on'] || ''),
+    amount: Number(row['Amount'] || row['AMOUNT'] || 0),
+    month: String(row['month'] || row['Month'] || ''),
   }));
 }
 

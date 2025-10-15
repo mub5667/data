@@ -6,9 +6,13 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 export default function AdvBillsPage() {
   const { toast } = useToast();
   const { data = [] } = useQuery<any[]>({ queryKey: ['/api/adv-bills'] });
-
-  const columns = [
-    { key: 'amount', label: 'Amount (RM)' },
+  
+  const columns: { key: string; label: string; type?: 'text' | 'number' | 'date' | 'status' }[] = [
+    { key: 'no', label: 'No' },
+    { key: 'billId', label: 'Bill id', type: 'text' },
+    { key: 'date', label: 'Date', type: 'date' },
+    { key: 'description', label: 'Description', type: 'text' },
+    { key: 'amount', label: 'Amount (RM)', type: 'number' },
   ];
 
   const addMutation = useMutation({
@@ -44,10 +48,16 @@ export default function AdvBillsPage() {
       
       <DataTable
         title="Advance Bills Records"
-        data={data}
+        data={(data || []).map((item: any, index: number) => ({ ...item, no: index + 1 }))}
         columns={columns}
-        onAdd={(row) => addMutation.mutate(row)}
-        onEdit={(id, row) => updateMutation.mutate({ id, data: row })}
+        onAdd={(row) => {
+          const { no, ...rest } = row as any;
+          addMutation.mutate(rest);
+        }}
+        onEdit={(id, row) => {
+          const { no, ...rest } = row as any;
+          updateMutation.mutate({ id, data: rest });
+        }}
         onDelete={(id) => deleteMutation.mutate(id)}
         datasetName="adv-bills"
       />

@@ -9,7 +9,13 @@ import type {
   RegistrationValApprovedRecord, RegistrationEnrollmentRecord,
   RegistrationVisaProcessRecord, RegistrationNotSubmittedRecord,
   RegistrationCancelledRecord, StudentRecord, BonusClaimedRecord, BonusNotClaimedRecord,
-  AgentRecord, AgentBonusRecord
+  AgentRecord, AgentBonusRecord, SentInvoiceRecord, UcsiRecord, UcsiInvoiceRecord,
+  IncomeOutcomeRecord, EventsRecord, SalariesRecord, ServicesRecord,
+  StudentHotelRecord, StudentFlightTicketRecord, AuthenticationPapersRecord,
+  StudentVisaRecord, ApplicationFeesRecord, AirlineTicketsRecord, RentRecord,
+  LawyerTaxContractRecord, BillsRecord, MaintenanceRecord, MedicalExpensesRecord,
+  GeneralExpensesRecord, SocialMediaRecord, TripTravelBonusRecord,
+  EmployeeVisaRecord, MoneyTransferRecord
 } from "@shared/schema";
 
 // Initialize SQLite database
@@ -30,6 +36,19 @@ export function initializeDatabase() {
       sub_agent REAL DEFAULT 0,
       social_media REAL DEFAULT 0,
       total_outcome REAL DEFAULT 0
+    );
+    
+    CREATE TABLE IF NOT EXISTS income_outcome (
+      id TEXT PRIMARY KEY,
+      no INTEGER,
+      date TEXT,
+      country TEXT,
+      income REAL DEFAULT 0,
+      office REAL DEFAULT 0,
+      salaries REAL DEFAULT 0,
+      subagent REAL DEFAULT 0,
+      socialmedia REAL DEFAULT 0,
+      outcome REAL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS student (
@@ -59,8 +78,8 @@ export function initializeDatabase() {
     program TEXT,
     month TEXT,
     enrollment TEXT,
-    enrollment_bonus TEXT,
-    visa_bonus TEXT,
+    enrollment_bonus number DEFAULT 0,
+    visa_bonus number DEFAULT 0,
     commission_from_uni TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -100,7 +119,22 @@ export function initializeDatabase() {
 
     CREATE TABLE IF NOT EXISTS adv_bill (
       id TEXT PRIMARY KEY,
+      no INTEGER DEFAULT 0,
+      bill_id TEXT,
+      date TEXT,
+      description TEXT,
       amount REAL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS subagent (
+      id TEXT PRIMARY KEY,
+      no INTEGER DEFAULT 0,
+      subagent_name TEXT,
+      date TEXT,
+      ref TEXT,
+      referral_commission_on TEXT,
+      amount REAL DEFAULT 0,
+      month TEXT
     );
 
     CREATE TABLE IF NOT EXISTS bonus (
@@ -255,6 +289,188 @@ export function initializeDatabase() {
       payment TEXT,
       sheet_type TEXT DEFAULT 'Cancelled'
     );
+
+    CREATE TABLE IF NOT EXISTS sent_invoices (
+      id TEXT PRIMARY KEY,
+      no INTEGER DEFAULT 0,
+      uni TEXT,
+      type TEXT,
+      date TEXT,
+      dr_hani_account REAL DEFAULT 0,
+      currency TEXT,
+      amount REAL DEFAULT 0,
+      apply_uni TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS ucsi (
+      id TEXT PRIMARY KEY,
+      no INTEGER DEFAULT 0,
+      university TEXT,
+      type TEXT,
+      date TEXT,
+      dr_hani_account REAL DEFAULT 0,
+      currency TEXT,
+      amount REAL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS ucsi_invoices (
+      id TEXT PRIMARY KEY,
+      no INTEGER DEFAULT 0,
+      university TEXT,
+      type TEXT,
+      date TEXT,
+      currency TEXT,
+      amount REAL DEFAULT 0,
+      received_date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS events (
+      id TEXT PRIMARY KEY,
+      no INTEGER DEFAULT 0,
+      date TEXT,
+      uni TEXT,
+      currency TEXT,
+      income REAL DEFAULT 0,
+      expenses REAL DEFAULT 0,
+      country TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS salaries (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      amount REAL DEFAULT 0,
+      date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS services (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      date TEXT,
+      amount REAL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS student_hotel (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      date TEXT,
+      amount REAL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS student_flight_ticket (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      date TEXT,
+      amount REAL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS authentication_papers (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      ref TEXT,
+      date TEXT,
+      ref_1 TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS student_visa (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      ref TEXT,
+      uni TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS application_fees (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      ref TEXT,
+      uni TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS airline_tickets (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      name TEXT,
+      date TEXT,
+      ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS rent (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      for_month TEXT,
+      date TEXT,
+      ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS lawyer_tax_contract (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS bills (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      bill_type TEXT,
+      ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS maintenance (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      type TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS medical_expenses (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      amount REAL DEFAULT 0,
+      date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS general_expenses (
+      id TEXT PRIMARY KEY,
+      type TEXT,
+      amount REAL DEFAULT 0,
+      date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS social_media (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      ref TEXT,
+      bank_ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS trip_travel_bonus (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      amount REAL DEFAULT 0,
+      date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS employee_visa (
+      id TEXT PRIMARY KEY,
+      employee_name TEXT,
+      amount REAL DEFAULT 0,
+      date TEXT,
+      ref TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS money_transfer (
+      id TEXT PRIMARY KEY,
+      amount REAL DEFAULT 0,
+      currency TEXT,
+      date TEXT,
+      name TEXT,
+      ref TEXT,
+      country TEXT
+    );
   `);
 
   console.log("Database tables created successfully");
@@ -400,6 +616,87 @@ export class SQLiteStorage {
     const records = await db.select().from(schema.invoiceTable).where(sql`id = ${id}`).all();
     return records[0];
   }
+  
+  // Sent Invoices methods
+  async getSentInvoicesData(): Promise<SentInvoiceRecord[]> {
+    return db.select().from(schema.sentInvoicesTable).all();
+  }
+
+  async addSentInvoiceRecord(record: Omit<SentInvoiceRecord, 'id'>): Promise<SentInvoiceRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.sentInvoicesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateSentInvoiceRecord(id: string, record: Partial<SentInvoiceRecord>): Promise<SentInvoiceRecord | undefined> {
+    await db.update(schema.sentInvoicesTable).set(record).where(sql`id = ${id}`);
+    return this.getSentInvoiceRecordById(id);
+  }
+
+  async deleteSentInvoiceRecord(id: string): Promise<boolean> {
+    await db.delete(schema.sentInvoicesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getSentInvoiceRecordById(id: string): Promise<SentInvoiceRecord | undefined> {
+    const records = await db.select().from(schema.sentInvoicesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+  
+  // UCSI methods
+  async getUcsiData(): Promise<UcsiRecord[]> {
+    return db.select().from(schema.ucsiTable).all();
+  }
+
+  async addUcsiRecord(record: Omit<UcsiRecord, 'id'>): Promise<UcsiRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.ucsiTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateUcsiRecord(id: string, record: Partial<UcsiRecord>): Promise<UcsiRecord | undefined> {
+    await db.update(schema.ucsiTable).set(record).where(sql`id = ${id}`);
+    return this.getUcsiRecordById(id);
+  }
+
+  async deleteUcsiRecord(id: string): Promise<boolean> {
+    await db.delete(schema.ucsiTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getUcsiRecordById(id: string): Promise<UcsiRecord | undefined> {
+    const records = await db.select().from(schema.ucsiTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+  
+  // UCSI Invoices methods
+  async getUcsiInvoiceData(): Promise<UcsiInvoiceRecord[]> {
+    return db.select().from(schema.ucsiInvoicesTable).all();
+  }
+
+  async addUcsiInvoiceRecord(record: Omit<UcsiInvoiceRecord, 'id'>): Promise<UcsiInvoiceRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.ucsiInvoicesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateUcsiInvoiceRecord(id: string, record: Partial<UcsiInvoiceRecord>): Promise<UcsiInvoiceRecord | undefined> {
+    await db.update(schema.ucsiInvoicesTable).set(record).where(sql`id = ${id}`);
+    return this.getUcsiInvoiceRecordById(id);
+  }
+
+  async deleteUcsiInvoiceRecord(id: string): Promise<boolean> {
+    await db.delete(schema.ucsiInvoicesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getUcsiInvoiceRecordById(id: string): Promise<UcsiInvoiceRecord | undefined> {
+    const records = await db.select().from(schema.ucsiInvoicesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
 
   // Adv Bill data
   async getAdvBillData(): Promise<AdvBillRecord[]> {
@@ -426,6 +723,29 @@ export class SQLiteStorage {
   async getAdvBillRecordById(id: string): Promise<AdvBillRecord | undefined> {
     const records = await db.select().from(schema.advBillTable).where(sql`id = ${id}`).all();
     return records[0];
+  }
+
+  // Subagent data
+  async getSubagentData(): Promise<any[]> {
+    return db.select().from(schema.subagentTable).all();
+  }
+
+  async addSubagentRecord(record: Omit<any, 'id'>): Promise<any> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.subagentTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateSubagentRecord(id: string, record: Partial<any>): Promise<any | undefined> {
+    await db.update(schema.subagentTable).set(record).where(sql`id = ${id}`);
+    const results = await db.select().from(schema.subagentTable).where(sql`id = ${id}`).all();
+    return results[0];
+  }
+
+  async deleteSubagentRecord(id: string): Promise<boolean> {
+    await db.delete(schema.subagentTable).where(sql`id = ${id}`);
+    return true;
   }
 
   // Bonus data
@@ -820,6 +1140,550 @@ export class SQLiteStorage {
   async deleteAgentBonus(id: string): Promise<boolean> {
     await db.delete(schema.agentBonusTable).where(sql`id = ${id}`);
     return true;
+  }
+
+  // Income Outcome methods
+  async getIncomeOutcomeData(): Promise<IncomeOutcomeRecord[]> {
+    return db.select().from(schema.incomeOutcomeTable).all();
+  }
+
+  async getIncomeOutcomeByCountry(country: string): Promise<IncomeOutcomeRecord[]> {
+    return db.select().from(schema.incomeOutcomeTable).where(eq(schema.incomeOutcomeTable.country, country)).all();
+  }
+
+  async addIncomeOutcomeRecord(record: Omit<IncomeOutcomeRecord, 'id'>): Promise<IncomeOutcomeRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.incomeOutcomeTable).values(newRecord);
+    return newRecord;
+  }
+
+  async getIncomeOutcomeById(id: string): Promise<IncomeOutcomeRecord | undefined> {
+    const results = await db.select().from(schema.incomeOutcomeTable).where(sql`id = ${id}`).all();
+    return results[0];
+  }
+
+  async updateIncomeOutcomeRecord(id: string, record: Partial<IncomeOutcomeRecord>): Promise<IncomeOutcomeRecord | undefined> {
+    await db.update(schema.incomeOutcomeTable).set(record).where(sql`id = ${id}`);
+    return this.getIncomeOutcomeById(id);
+  }
+
+  async deleteIncomeOutcomeRecord(id: string): Promise<boolean> {
+    await db.delete(schema.incomeOutcomeTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  // Events methods
+  async getEventsData(): Promise<EventsRecord[]> {
+    return db.select().from(schema.eventsTable).all();
+  }
+
+  async addEventsRecord(record: Omit<EventsRecord, 'id'>): Promise<EventsRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.eventsTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateEventsRecord(id: string, record: Partial<EventsRecord>): Promise<EventsRecord | undefined> {
+    await db.update(schema.eventsTable).set(record).where(sql`id = ${id}`);
+    return this.getEventsRecordById(id);
+  }
+
+  async deleteEventsRecord(id: string): Promise<boolean> {
+    await db.delete(schema.eventsTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getEventsRecordById(id: string): Promise<EventsRecord | undefined> {
+    const records = await db.select().from(schema.eventsTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Salaries methods
+  async getSalariesData(): Promise<SalariesRecord[]> {
+    return db.select().from(schema.salariesTable).all();
+  }
+
+  async addSalariesRecord(record: Omit<SalariesRecord, 'id'>): Promise<SalariesRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.salariesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateSalariesRecord(id: string, record: Partial<SalariesRecord>): Promise<SalariesRecord | undefined> {
+    await db.update(schema.salariesTable).set(record).where(sql`id = ${id}`);
+    return this.getSalariesRecordById(id);
+  }
+
+  async deleteSalariesRecord(id: string): Promise<boolean> {
+    await db.delete(schema.salariesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getSalariesRecordById(id: string): Promise<SalariesRecord | undefined> {
+    const records = await db.select().from(schema.salariesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Services methods
+  async getServicesData(): Promise<ServicesRecord[]> {
+    return db.select().from(schema.servicesTable).all();
+  }
+
+  async addServicesRecord(record: Omit<ServicesRecord, 'id'>): Promise<ServicesRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.servicesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateServicesRecord(id: string, record: Partial<ServicesRecord>): Promise<ServicesRecord | undefined> {
+    await db.update(schema.servicesTable).set(record).where(sql`id = ${id}`);
+    return this.getServicesRecordById(id);
+  }
+
+  async deleteServicesRecord(id: string): Promise<boolean> {
+    await db.delete(schema.servicesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getServicesRecordById(id: string): Promise<ServicesRecord | undefined> {
+    const records = await db.select().from(schema.servicesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Student Hotel methods
+  async getStudentHotelData(): Promise<StudentHotelRecord[]> {
+    return db.select().from(schema.studentHotelTable).all();
+  }
+
+  async addStudentHotelRecord(record: Omit<StudentHotelRecord, 'id'>): Promise<StudentHotelRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.studentHotelTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateStudentHotelRecord(id: string, record: Partial<StudentHotelRecord>): Promise<StudentHotelRecord | undefined> {
+    await db.update(schema.studentHotelTable).set(record).where(sql`id = ${id}`);
+    return this.getStudentHotelRecordById(id);
+  }
+
+  async deleteStudentHotelRecord(id: string): Promise<boolean> {
+    await db.delete(schema.studentHotelTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getStudentHotelRecordById(id: string): Promise<StudentHotelRecord | undefined> {
+    const records = await db.select().from(schema.studentHotelTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Student Flight Ticket methods
+  async getStudentFlightTicketData(): Promise<StudentFlightTicketRecord[]> {
+    return db.select().from(schema.studentFlightTicketTable).all();
+  }
+
+  async addStudentFlightTicketRecord(record: Omit<StudentFlightTicketRecord, 'id'>): Promise<StudentFlightTicketRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.studentFlightTicketTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateStudentFlightTicketRecord(id: string, record: Partial<StudentFlightTicketRecord>): Promise<StudentFlightTicketRecord | undefined> {
+    await db.update(schema.studentFlightTicketTable).set(record).where(sql`id = ${id}`);
+    return this.getStudentFlightTicketRecordById(id);
+  }
+
+  async deleteStudentFlightTicketRecord(id: string): Promise<boolean> {
+    await db.delete(schema.studentFlightTicketTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getStudentFlightTicketRecordById(id: string): Promise<StudentFlightTicketRecord | undefined> {
+    const records = await db.select().from(schema.studentFlightTicketTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Authentication Papers methods
+  async getAuthenticationPapersData(): Promise<AuthenticationPapersRecord[]> {
+    return db.select().from(schema.authenticationPapersTable).all();
+  }
+
+  async addAuthenticationPapersRecord(record: Omit<AuthenticationPapersRecord, 'id'>): Promise<AuthenticationPapersRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.authenticationPapersTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateAuthenticationPapersRecord(id: string, record: Partial<AuthenticationPapersRecord>): Promise<AuthenticationPapersRecord | undefined> {
+    await db.update(schema.authenticationPapersTable).set(record).where(sql`id = ${id}`);
+    return this.getAuthenticationPapersRecordById(id);
+  }
+
+  async deleteAuthenticationPapersRecord(id: string): Promise<boolean> {
+    await db.delete(schema.authenticationPapersTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getAuthenticationPapersRecordById(id: string): Promise<AuthenticationPapersRecord | undefined> {
+    const records = await db.select().from(schema.authenticationPapersTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Student Visa methods
+  async getStudentVisaData(): Promise<StudentVisaRecord[]> {
+    return db.select().from(schema.studentVisaTable).all();
+  }
+
+  async addStudentVisaRecord(record: Omit<StudentVisaRecord, 'id'>): Promise<StudentVisaRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.studentVisaTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateStudentVisaRecord(id: string, record: Partial<StudentVisaRecord>): Promise<StudentVisaRecord | undefined> {
+    await db.update(schema.studentVisaTable).set(record).where(sql`id = ${id}`);
+    return this.getStudentVisaRecordById(id);
+  }
+
+  async deleteStudentVisaRecord(id: string): Promise<boolean> {
+    await db.delete(schema.studentVisaTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getStudentVisaRecordById(id: string): Promise<StudentVisaRecord | undefined> {
+    const records = await db.select().from(schema.studentVisaTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Application Fees methods
+  async getApplicationFeesData(): Promise<ApplicationFeesRecord[]> {
+    return db.select().from(schema.applicationFeesTable).all();
+  }
+
+  async addApplicationFeesRecord(record: Omit<ApplicationFeesRecord, 'id'>): Promise<ApplicationFeesRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.applicationFeesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateApplicationFeesRecord(id: string, record: Partial<ApplicationFeesRecord>): Promise<ApplicationFeesRecord | undefined> {
+    await db.update(schema.applicationFeesTable).set(record).where(sql`id = ${id}`);
+    return this.getApplicationFeesRecordById(id);
+  }
+
+  async deleteApplicationFeesRecord(id: string): Promise<boolean> {
+    await db.delete(schema.applicationFeesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getApplicationFeesRecordById(id: string): Promise<ApplicationFeesRecord | undefined> {
+    const records = await db.select().from(schema.applicationFeesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Airline Tickets methods
+  async getAirlineTicketsData(): Promise<AirlineTicketsRecord[]> {
+    return db.select().from(schema.airlineTicketsTable).all();
+  }
+
+  async addAirlineTicketsRecord(record: Omit<AirlineTicketsRecord, 'id'>): Promise<AirlineTicketsRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.airlineTicketsTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateAirlineTicketsRecord(id: string, record: Partial<AirlineTicketsRecord>): Promise<AirlineTicketsRecord | undefined> {
+    await db.update(schema.airlineTicketsTable).set(record).where(sql`id = ${id}`);
+    return this.getAirlineTicketsRecordById(id);
+  }
+
+  async deleteAirlineTicketsRecord(id: string): Promise<boolean> {
+    await db.delete(schema.airlineTicketsTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getAirlineTicketsRecordById(id: string): Promise<AirlineTicketsRecord | undefined> {
+    const records = await db.select().from(schema.airlineTicketsTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Rent methods
+  async getRentData(): Promise<RentRecord[]> {
+    return db.select().from(schema.rentTable).all();
+  }
+
+  async addRentRecord(record: Omit<RentRecord, 'id'>): Promise<RentRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.rentTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateRentRecord(id: string, record: Partial<RentRecord>): Promise<RentRecord | undefined> {
+    await db.update(schema.rentTable).set(record).where(sql`id = ${id}`);
+    return this.getRentRecordById(id);
+  }
+
+  async deleteRentRecord(id: string): Promise<boolean> {
+    await db.delete(schema.rentTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getRentRecordById(id: string): Promise<RentRecord | undefined> {
+    const records = await db.select().from(schema.rentTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Lawyer Tax Contract methods
+  async getLawyerTaxContractData(): Promise<LawyerTaxContractRecord[]> {
+    return db.select().from(schema.lawyerTaxContractTable).all();
+  }
+
+  async addLawyerTaxContractRecord(record: Omit<LawyerTaxContractRecord, 'id'>): Promise<LawyerTaxContractRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.lawyerTaxContractTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateLawyerTaxContractRecord(id: string, record: Partial<LawyerTaxContractRecord>): Promise<LawyerTaxContractRecord | undefined> {
+    await db.update(schema.lawyerTaxContractTable).set(record).where(sql`id = ${id}`);
+    return this.getLawyerTaxContractRecordById(id);
+  }
+
+  async deleteLawyerTaxContractRecord(id: string): Promise<boolean> {
+    await db.delete(schema.lawyerTaxContractTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getLawyerTaxContractRecordById(id: string): Promise<LawyerTaxContractRecord | undefined> {
+    const records = await db.select().from(schema.lawyerTaxContractTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Bills methods
+  async getBillsData(): Promise<BillsRecord[]> {
+    return db.select().from(schema.billsTable).all();
+  }
+
+  async addBillsRecord(record: Omit<BillsRecord, 'id'>): Promise<BillsRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.billsTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateBillsRecord(id: string, record: Partial<BillsRecord>): Promise<BillsRecord | undefined> {
+    await db.update(schema.billsTable).set(record).where(sql`id = ${id}`);
+    return this.getBillsRecordById(id);
+  }
+
+  async deleteBillsRecord(id: string): Promise<boolean> {
+    await db.delete(schema.billsTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getBillsRecordById(id: string): Promise<BillsRecord | undefined> {
+    const records = await db.select().from(schema.billsTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Maintenance methods
+  async getMaintenanceData(): Promise<MaintenanceRecord[]> {
+    return db.select().from(schema.maintenanceTable).all();
+  }
+
+  async addMaintenanceRecord(record: Omit<MaintenanceRecord, 'id'>): Promise<MaintenanceRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.maintenanceTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateMaintenanceRecord(id: string, record: Partial<MaintenanceRecord>): Promise<MaintenanceRecord | undefined> {
+    await db.update(schema.maintenanceTable).set(record).where(sql`id = ${id}`);
+    return this.getMaintenanceRecordById(id);
+  }
+
+  async deleteMaintenanceRecord(id: string): Promise<boolean> {
+    await db.delete(schema.maintenanceTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getMaintenanceRecordById(id: string): Promise<MaintenanceRecord | undefined> {
+    const records = await db.select().from(schema.maintenanceTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Medical Expenses methods
+  async getMedicalExpensesData(): Promise<MedicalExpensesRecord[]> {
+    return db.select().from(schema.medicalExpensesTable).all();
+  }
+
+  async addMedicalExpensesRecord(record: Omit<MedicalExpensesRecord, 'id'>): Promise<MedicalExpensesRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.medicalExpensesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateMedicalExpensesRecord(id: string, record: Partial<MedicalExpensesRecord>): Promise<MedicalExpensesRecord | undefined> {
+    await db.update(schema.medicalExpensesTable).set(record).where(sql`id = ${id}`);
+    return this.getMedicalExpensesRecordById(id);
+  }
+
+  async deleteMedicalExpensesRecord(id: string): Promise<boolean> {
+    await db.delete(schema.medicalExpensesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getMedicalExpensesRecordById(id: string): Promise<MedicalExpensesRecord | undefined> {
+    const records = await db.select().from(schema.medicalExpensesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // General Expenses methods
+  async getGeneralExpensesData(): Promise<GeneralExpensesRecord[]> {
+    return db.select().from(schema.generalExpensesTable).all();
+  }
+
+  async addGeneralExpensesRecord(record: Omit<GeneralExpensesRecord, 'id'>): Promise<GeneralExpensesRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.generalExpensesTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateGeneralExpensesRecord(id: string, record: Partial<GeneralExpensesRecord>): Promise<GeneralExpensesRecord | undefined> {
+    await db.update(schema.generalExpensesTable).set(record).where(sql`id = ${id}`);
+    return this.getGeneralExpensesRecordById(id);
+  }
+
+  async deleteGeneralExpensesRecord(id: string): Promise<boolean> {
+    await db.delete(schema.generalExpensesTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getGeneralExpensesRecordById(id: string): Promise<GeneralExpensesRecord | undefined> {
+    const records = await db.select().from(schema.generalExpensesTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Social Media methods
+  async getSocialMediaData(): Promise<SocialMediaRecord[]> {
+    return db.select().from(schema.socialMediaTable).all();
+  }
+
+  async addSocialMediaRecord(record: Omit<SocialMediaRecord, 'id'>): Promise<SocialMediaRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.socialMediaTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateSocialMediaRecord(id: string, record: Partial<SocialMediaRecord>): Promise<SocialMediaRecord | undefined> {
+    await db.update(schema.socialMediaTable).set(record).where(sql`id = ${id}`);
+    return this.getSocialMediaRecordById(id);
+  }
+
+  async deleteSocialMediaRecord(id: string): Promise<boolean> {
+    await db.delete(schema.socialMediaTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getSocialMediaRecordById(id: string): Promise<SocialMediaRecord | undefined> {
+    const records = await db.select().from(schema.socialMediaTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Trip Travel Bonus methods
+  async getTripTravelBonusData(): Promise<TripTravelBonusRecord[]> {
+    return db.select().from(schema.tripTravelBonusTable).all();
+  }
+
+  async addTripTravelBonusRecord(record: Omit<TripTravelBonusRecord, 'id'>): Promise<TripTravelBonusRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.tripTravelBonusTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateTripTravelBonusRecord(id: string, record: Partial<TripTravelBonusRecord>): Promise<TripTravelBonusRecord | undefined> {
+    await db.update(schema.tripTravelBonusTable).set(record).where(sql`id = ${id}`);
+    return this.getTripTravelBonusRecordById(id);
+  }
+
+  async deleteTripTravelBonusRecord(id: string): Promise<boolean> {
+    await db.delete(schema.tripTravelBonusTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getTripTravelBonusRecordById(id: string): Promise<TripTravelBonusRecord | undefined> {
+    const records = await db.select().from(schema.tripTravelBonusTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Employee Visa methods
+  async getEmployeeVisaData(): Promise<EmployeeVisaRecord[]> {
+    return db.select().from(schema.employeeVisaTable).all();
+  }
+
+  async addEmployeeVisaRecord(record: Omit<EmployeeVisaRecord, 'id'>): Promise<EmployeeVisaRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.employeeVisaTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateEmployeeVisaRecord(id: string, record: Partial<EmployeeVisaRecord>): Promise<EmployeeVisaRecord | undefined> {
+    await db.update(schema.employeeVisaTable).set(record).where(sql`id = ${id}`);
+    return this.getEmployeeVisaRecordById(id);
+  }
+
+  async deleteEmployeeVisaRecord(id: string): Promise<boolean> {
+    await db.delete(schema.employeeVisaTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getEmployeeVisaRecordById(id: string): Promise<EmployeeVisaRecord | undefined> {
+    const records = await db.select().from(schema.employeeVisaTable).where(sql`id = ${id}`).all();
+    return records[0];
+  }
+
+  // Money Transfer methods
+  async getMoneyTransferData(): Promise<MoneyTransferRecord[]> {
+    return db.select().from(schema.moneyTransferTable).all();
+  }
+
+  async addMoneyTransferRecord(record: Omit<MoneyTransferRecord, 'id'>): Promise<MoneyTransferRecord> {
+    const id = randomUUID();
+    const newRecord = { id, ...record };
+    await db.insert(schema.moneyTransferTable).values(newRecord);
+    return newRecord;
+  }
+
+  async updateMoneyTransferRecord(id: string, record: Partial<MoneyTransferRecord>): Promise<MoneyTransferRecord | undefined> {
+    await db.update(schema.moneyTransferTable).set(record).where(sql`id = ${id}`);
+    return this.getMoneyTransferRecordById(id);
+  }
+
+  async deleteMoneyTransferRecord(id: string): Promise<boolean> {
+    await db.delete(schema.moneyTransferTable).where(sql`id = ${id}`);
+    return true;
+  }
+
+  async getMoneyTransferRecordById(id: string): Promise<MoneyTransferRecord | undefined> {
+    const records = await db.select().from(schema.moneyTransferTable).where(sql`id = ${id}`).all();
+    return records[0];
   }
 }
 

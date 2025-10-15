@@ -1,4 +1,4 @@
-import { Database, FileSpreadsheet, Receipt, DollarSign, FileText, Award, UserPlus, LayoutDashboard, Menu, ChevronLeft, Building2, LogOut } from "lucide-react";
+import { Database, FileSpreadsheet, Receipt, DollarSign, FileText, Award, UserPlus, LayoutDashboard, Menu, ChevronLeft, Building2, LogOut, Calendar, Globe, Wallet, Wrench, ClipboardList, Plane, Gift, BadgeCheck, ArrowLeftRight, Send, University, FilePlus2, Users, CheckCircle2, XCircle, FileSymlink, FileBarChart2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import {
@@ -14,28 +14,62 @@ import { cn } from "@/lib/utils";
 
 const datasets = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "ABEER", url: "/abeer", icon: Database },
-  { title: "DATA", url: "/data", icon: FileSpreadsheet },
+  { 
+    title: "ABEER", 
+    url: "/abeer", 
+    icon: Database,
+    submenu: [
+     
+      { title: "Income & Outcome", url: "/income-outcome", icon: Wallet },
+      { title: "Events", url: "/abeer/events", icon: Calendar },
+      { title: "Salaries", url: "/abeer/salaries", icon: Wallet },
+      { title: "Service", url: "/abeer/service", icon: Wrench },
+      { title: "Procedure of Receiving Student", url: "/abeer/procedure-receiving-student", icon: ClipboardList },
+      { title: "Office", url: "/abeer/office", icon: Building2 },
+      { title: "Trip/Travel/Bonus", url: "/abeer/trip-travel-bonus", icon: Plane },
+      { title: "Employee Visa", url: "/abeer/employee-visa", icon: BadgeCheck },
+      { title: "Money Transfer", url: "/abeer/money-transfer", icon: ArrowLeftRight },
+    ]
+  },
+
   { 
     title: "COMMISSION", 
     url: "/commission", 
     icon: DollarSign,
     submenu: [
-      { title: "Commissions", url: "/commission" },
-      { title: "Reports", url: "/commission/reports" },
+      { title: "Commissions", url: "/commission", icon: DollarSign },
+      { title: "Reports", url: "/commission/reports", icon: FileBarChart2 },
     ]
   },
-  { title: "INVOICES", url: "/invoices", icon: Receipt },
-  { title: "ADV BILLS", url: "/adv-bills", icon: FileText },
+  { 
+    title: "INVOICES", 
+    url: "/invoices", 
+    icon: Receipt,
+    submenu: [
+      { title: "Invoices", url: "/invoices", icon: Receipt },
+      { title: "Sent", url: "/invoices/sent", icon: Send },
+      { title: "UCSI", url: "/invoices/ucsi", icon: University },
+      { title: "UCSI Invoices", url: "/invoices/ucsi-invoices", icon: Receipt },
+    ]
+  },
+  { 
+    title: "ADV BILLS", 
+    url: "/adv-bills", 
+    icon: FileText,
+    submenu: [
+      { title: "ADV Bills", url: "/adv-bills", icon: FileText },
+      { title: "Subagent", url: "/adv-bills/subagent", icon: Users },
+    ]
+  },
   { 
     title: "BONUS", 
     url: "/bonus", 
     icon: Award,
     submenu: [
-      { title: "Add Bonus", url: "/bonus/add" },
-      { title: "Agents", url: "/bonus/agents" },
-      { title: "Claimed", url: "/bonus/claimed" },
-      { title: "Not Claimed", url: "/bonus/not-claimed" },
+      { title: "Add Bonus", url: "/bonus/add", icon: FilePlus2 },
+      { title: "Agents", url: "/bonus/agents", icon: Users },
+      { title: "Claimed", url: "/bonus/claimed", icon: CheckCircle2 },
+      { title: "Not Claimed", url: "/bonus/not-claimed", icon: XCircle },
     ]
   },
   { 
@@ -43,12 +77,12 @@ const datasets = [
     url: "/registration", 
     icon: UserPlus,
     submenu: [
-      { title: "Add Student", url: "/registration/add-student" },
-      { title: "Val Approved", url: "/registration/val-approved" },
-      { title: "Enrollment", url: "/registration/enrollment" },
-      { title: "Visa Process", url: "/registration/visa-process" },
-      { title: "Not Submitted", url: "/registration/not-submitted" },
-      { title: "Cancelled", url: "/registration/cancelled" },
+      { title: "Add Student", url: "/registration/add-student", icon: UserPlus },
+      { title: "Val Approved", url: "/registration/val-approved", icon: CheckCircle2 },
+      { title: "Enrollment", url: "/registration/enrollment", icon: FileSymlink },
+      { title: "Visa Process", url: "/registration/visa-process", icon: BadgeCheck },
+      { title: "Not Submitted", url: "/registration/not-submitted", icon: XCircle },
+      { title: "Cancelled", url: "/registration/cancelled", icon: XCircle },
     ]
   },
 ];
@@ -69,6 +103,7 @@ export function AppSidebar() {
       className={cn(
         "border-r bg-gradient-to-b from-white to-slate-50/80 backdrop-blur-sm",
         "transition-all duration-300 ease-in-out relative",
+        "max-sm:fixed max-sm:z-40 max-sm:h-screen max-sm:top-0",
         isOpen ? "w-64" : "w-20",
         isHovered && !isOpen && "w-64 shadow-xl"
       )}
@@ -107,7 +142,7 @@ export function AppSidebar() {
 
         {/* Toggle Button */}
         <div className={cn(
-          "absolute -right-3 top-20 z-20 transition-all duration-300",
+          "absolute -right-3 top-20 z-20 transition-all duration-300 max-sm:hidden",
           isOpen ? "right-3" : "right-4"
         )}>
           <button
@@ -218,7 +253,10 @@ export function AppSidebar() {
                                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                               )}
                             >
-                              {subItem.title}
+                              <span className="inline-flex items-center gap-2">
+                                {subItem.icon && <subItem.icon className="h-4 w-4" />}
+                                <span>{subItem.title}</span>
+                              </span>
                             </Link>
                           );
                         })}

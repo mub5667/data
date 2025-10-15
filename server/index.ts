@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./db";
-import { loadAllDataToSQLite } from "./excel-loader-sqlite";
+import { loadAllDataToSQLite, loadIncomeOutcomeDataToSQLite } from "./excel-loader-sqlite";
 
 
 const app = express();
