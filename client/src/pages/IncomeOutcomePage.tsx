@@ -3,7 +3,7 @@ import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, PillTabsList as TabsList, PillTabsTrigger as TabsTrigger } from "@/components/ui/tailwind-tabs";
 
 export default function IncomeOutcomePage() {
   const { toast } = useToast();
@@ -70,14 +70,14 @@ export default function IncomeOutcomePage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       <div>
         <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">Income & Outcome</h1>
         <p className="text-muted-foreground mt-2">Financial data and income/outcome analysis by country</p>
       </div>
       
       <Tabs defaultValue="malaysia" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full max-w-md">
+        <TabsList className="flex w-full gap-5 mb-5 overflow-x-auto p-1 bg-card rounded-lg">
           <TabsTrigger value="malaysia">Malaysia</TabsTrigger>
           <TabsTrigger value="egypt">Egypt</TabsTrigger>
           <TabsTrigger value="uae">UAE</TabsTrigger>

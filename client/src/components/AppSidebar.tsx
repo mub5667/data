@@ -24,7 +24,7 @@ const datasets = [
       { title: "Events", url: "/abeer/events", icon: Calendar },
       { title: "Salaries", url: "/abeer/salaries", icon: Wallet },
       { title: "Service", url: "/abeer/service", icon: Wrench },
-      { title: "Procedure of Receiving Student", url: "/abeer/procedure-receiving-student", icon: ClipboardList },
+      { title: "Receiving Student Procedure", url: "/abeer/procedure-receiving-student", icon: ClipboardList },
       { title: "Office", url: "/abeer/office", icon: Building2 },
       { title: "Trip/Travel/Bonus", url: "/abeer/trip-travel-bonus", icon: Plane },
       { title: "Employee Visa", url: "/abeer/employee-visa", icon: BadgeCheck },
@@ -38,7 +38,7 @@ const datasets = [
     icon: DollarSign,
     submenu: [
       { title: "Commissions", url: "/commission", icon: DollarSign },
-      { title: "Reports", url: "/commission/reports", icon: FileBarChart2 },
+      
     ]
   },
   { 
@@ -134,7 +134,7 @@ export function AppSidebar() {
                 <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   DataManager
                 </span>
-                <span className="text-xs text-slate-500 font-medium">Professional Suite</span>
+                <span className="text-xs text-slate-500 dark:text-slate-300 font-medium">Professional Suite</span>
               </div>
             )}
           </div>
@@ -181,7 +181,7 @@ export function AppSidebar() {
                         "hover:shadow-md hover:scale-[1.02]",
                         isActive 
                           ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg" 
-                          : "text-slate-700 hover:bg-white hover:border hover:border-slate-200",
+                          : "text-slate-700 dark:text-white hover:bg-white dark:hover:bg-slate-800 hover:border hover:border-slate-200 dark:hover:border-slate-700",
                         showContent ? "rounded-xl" : "rounded-full mx-auto w-12",
                         "border border-transparent"
                       )}
@@ -200,7 +200,7 @@ export function AppSidebar() {
                         )}>
                           <div className={cn(
                             "relative transition-transform duration-200 group-hover:scale-110",
-                            isActive ? "text-white" : "text-slate-600 group-hover:text-blue-600"
+                            isActive ? "text-white" : "text-slate-600 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400"
                           )}>
                             <item.icon className="h-5 w-5 flex-shrink-0" />
                           </div>
@@ -209,7 +209,7 @@ export function AppSidebar() {
                             <div className="flex items-center justify-between flex-1 ml-3">
                               <span className={cn(
                                 "font-semibold text-sm transition-colors duration-200",
-                                isActive ? "text-white" : "text-slate-700 group-hover:text-slate-900"
+                                isActive ? "text-white" : "text-slate-700 dark:text-white group-hover:text-slate-900 dark:group-hover:text-white"
                               )}>
                                 {item.title}
                               </span>
@@ -217,7 +217,7 @@ export function AppSidebar() {
                                 <ChevronLeft className={cn(
                                   "h-4 w-4 transition-transform duration-300",
                                   submenuOpen ? "rotate-90" : "-rotate-90",
-                                  isActive ? "text-white" : "text-slate-500"
+                                  isActive ? "text-white" : "text-slate-500 dark:text-white"
                                 )} />
                               )}
                             </div>
@@ -250,7 +250,7 @@ export function AppSidebar() {
                                 "block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                                 isSubActive 
                                   ? "bg-blue-100 text-blue-700" 
-                                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                  : "text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                               )}
                             >
                               <span className="inline-flex items-center gap-2">
@@ -274,30 +274,9 @@ export function AppSidebar() {
           "px-4 pt-6 border-t border-slate-200/60",
           (!isOpen && !isHovered) && "px-2"
         )}>
-          <button
-            onClick={handleLogout}
-            className={cn(
-              "group flex items-center w-full transition-all duration-200",
-              "hover:shadow-md hover:scale-[1.02] text-slate-700 hover:bg-red-50 hover:text-red-700",
-              "border border-transparent hover:border-red-200",
-              isOpen || isHovered ? "rounded-xl pl-4 pr-3 py-3" : "rounded-full p-3 justify-center"
-            )}
-          >
-            <div className={cn(
-              "transition-transform duration-200 group-hover:scale-110",
-              "group-hover:text-red-600"
-            )}>
-              <LogOut className="h-5 w-5 flex-shrink-0" />
-            </div>
-            
-            {(isOpen || isHovered) && (
-              <div className="flex items-center justify-between flex-1 ml-3">
-                <span className="font-semibold text-sm transition-colors duration-200">
-                  Logout
-                </span>
-              </div>
-            )}
-          </button>
+       
+        
+        
         </div>
       </SidebarContent>
 

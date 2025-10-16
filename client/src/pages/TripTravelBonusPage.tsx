@@ -23,11 +23,12 @@ export default function TripTravelBonusPage() {
   });
 
   const addMutation = useMutation({
-    mutationFn: async (newRecord: Omit<TripTravelBonusRecord, "id">) => {
+    mutationFn: async (newRecord: Omit<TripTravelBonusRecord, "id"> & { no?: number }) => {
+      const { no, ...payload } = newRecord as any;
       const response = await fetch("/api/trip-travel-bonus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newRecord),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Failed to create trip travel bonus");
       return response.json();
@@ -39,11 +40,12 @@ export default function TripTravelBonusPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, ...updateData }: TripTravelBonusRecord) => {
+    mutationFn: async ({ id, ...updateData }: TripTravelBonusRecord & { no?: number }) => {
+      const { no, ...payload } = updateData as any;
       const response = await fetch(`/api/trip-travel-bonus/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Failed to update trip travel bonus");
       return response.json();
@@ -85,6 +87,7 @@ export default function TripTravelBonusPage() {
   }
 
   const columns = [
+    { key: "no", label: "No" },
     { key: "name", label: "Name", type: "text" as const },
     { key: "amount", label: "Amount", type: "number" as const },
     { key: "date", label: "Date", type: "date" as const },
@@ -94,7 +97,7 @@ export default function TripTravelBonusPage() {
     <div className="p-6">
       <DataTable
         title="Trip/Travel/Bonus"
-        data={tripTravelBonus || []}
+        data={(tripTravelBonus || []).map((item: any, index: number) => ({ ...item, no: index + 1 }))}
         columns={columns}
         onAdd={handleAdd}
         onEdit={handleEdit}

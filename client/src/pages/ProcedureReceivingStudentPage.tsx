@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "@/components/DataTable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, PillTabsList as TabsList, PillTabsTrigger as TabsTrigger } from "@/components/ui/tailwind-tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
@@ -272,40 +272,40 @@ export default function ProcedureReceivingStudentPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TooltipProvider>
-          <TabsList className="flex w-full gap-2 overflow-x-auto p-1 bg-card rounded-lg">
+          <TabsList className="flex w-full gap-2 mb-5 overflow-x-auto p-1 bg-card rounded-lg">
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="student-hotel" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Hotel</TabsTrigger>
+                <TabsTrigger value="student-hotel" >Hotel</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Hotel</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="student-flight-ticket" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Flight Ticket</TabsTrigger>
+                <TabsTrigger value="student-flight-ticket" >Flight Ticket</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Flight Ticket</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="authentication-papers" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Papers Authentication</TabsTrigger>
+                <TabsTrigger value="authentication-papers" >Papers Authentication</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Papers Authentication</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="student-visa" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Visa</TabsTrigger>
+                <TabsTrigger value="student-visa" >Visa</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Visa</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="application-fees" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Application Fees</TabsTrigger>
+                <TabsTrigger value="application-fees" >Application Fees</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Application Fees</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="airline-tickets" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Airline Tickets</TabsTrigger>
+                <TabsTrigger value="airline-tickets" >Airline Tickets</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Airline Tickets</TooltipContent>
             </Tooltip>

@@ -26,7 +26,7 @@ export default function CommissionReportsPage() {
     },
   });
 
-  // Process data for monthly earnings
+  // Process data for monthly commission
   const getMonthlyData = () => {
     if (!commissions) return [];
 
@@ -35,7 +35,7 @@ export default function CommissionReportsPage() {
       ? commissions 
       : commissions.filter((item: any) => item.currency === currency);
 
-    // Group by month and sum amounts
+    // Group by month and sum commission amounts
     const monthlyData = filteredData.reduce((acc: any, curr: any) => {
       // Extract month and year from the month field
       const monthYear = curr.month || 'Unknown';
@@ -47,14 +47,10 @@ export default function CommissionReportsPage() {
         acc[monthYear] = {
           month: monthYear,
           commission: 0,
-          otherIncome: 0,
-          total: 0
         };
       }
       
       acc[monthYear].commission += Number(curr.amount) || 0;
-      acc[monthYear].otherIncome += Number(curr.otherIncome) || 0;
-      acc[monthYear].total += (Number(curr.amount) || 0) + (Number(curr.otherIncome) || 0);
       
       return acc;
     }, {});
@@ -132,9 +128,7 @@ export default function CommissionReportsPage() {
   const availableCurrencies = getAvailableCurrencies();
 
   // Calculate totals
-  const totalCommission = monthlyData.reduce((sum, item) => sum + item.commission, 0);
-  const totalOtherIncome = monthlyData.reduce((sum, item) => sum + item.otherIncome, 0);
-  const grandTotal = totalCommission + totalOtherIncome;
+  const totalCommission = monthlyData.reduce((sum, item: any) => sum + (item.commission || 0), 0);
 
   if (isLoading) {
     return (
@@ -187,43 +181,25 @@ export default function CommissionReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Total Commission</CardTitle>
+            <CardTitle>Total Commission Given</CardTitle>
             <CardDescription>Year {year}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalCommission.toLocaleString()}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Other Income</CardTitle>
-            <CardDescription>Year {year}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOtherIncome.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Grand Total</CardTitle>
-            <CardDescription>Year {year}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{grandTotal.toLocaleString()}</div>
-          </CardContent>
-        </Card>
       </div>
 
       <Tabs defaultValue="monthly">
         <TabsList>
-          <TabsTrigger value="monthly">Monthly Earnings</TabsTrigger>
+          <TabsTrigger value="monthly">Commission</TabsTrigger>
           <TabsTrigger value="university">University Distribution</TabsTrigger>
         </TabsList>
         <TabsContent value="monthly" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Monthly Earnings ({year})</CardTitle>
-              <CardDescription>Commission and other income by month</CardDescription>
+              <CardTitle>Monthly Commission Given ({year})</CardTitle>
+              <CardDescription>Commission by month</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
@@ -239,7 +215,6 @@ export default function CommissionReportsPage() {
                       <Tooltip />
                       <Legend />
                       <Bar dataKey="commission" name="Commission" fill="#0088FE" />
-                      <Bar dataKey="otherIncome" name="Other Income" fill="#00C49F" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (

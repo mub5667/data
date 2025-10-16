@@ -140,19 +140,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Search student by passport number
+  // Search student by passport number (accepts passportNumber or passport)
   app.get("/api/students/search", async (req, res) => {
     try {
-      const { passport } = req.query;
-      if (!passport) {
+      const { passportNumber, passport } = req.query as { passportNumber?: string; passport?: string };
+      const pn = (passportNumber || passport || "").toString();
+      if (!pn) {
         return res.status(400).json({ error: "Passport number is required" });
       }
-      
-      const student = await sqliteStorage.getStudentByPassport(passport as string);
+      const student = await sqliteStorage.getStudentByPassport(pn);
       if (!student) {
         return res.status(404).json({ error: "Student not found" });
       }
-      
       res.json(student);
     } catch (error) {
       console.error("Error searching student:", error);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "@/components/DataTable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, PillTabsList as TabsList, PillTabsTrigger as TabsTrigger } from "@/components/ui/tailwind-tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
@@ -216,6 +216,14 @@ export default function OfficePage() {
     { key: "ref", label: "Reference", type: "text" as const },
   ];
 
+  const BillColumns = [
+    { key: "no", label: "No" },
+    { key: "amount", label: "Amount", type: "number" as const },
+    { key: "billType", label: "Bill Type" },
+    { key: "date", label: "Date", type: "date" as const },
+    { key: "ref", label: "Reference", type: "text" as const },
+  ];
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -225,46 +233,46 @@ export default function OfficePage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TooltipProvider>
-          <TabsList className="flex w-full gap-2 overflow-x-auto p-1 bg-card rounded-lg">
+          <TabsList  className="flex w-full gap-5 mb-3 overflow-x-auto p-1 bg-card rounded-lg">
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="rent" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Rent</TabsTrigger>
+                <TabsTrigger value="rent" >Rent</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Rent</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="lawyer-tax-contract" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Lawyer/Tax/Contract</TabsTrigger>
+                <TabsTrigger value="lawyer-tax-contract" >Lawyer/Tax/Contract</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Lawyer/Tax/Contract</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="bills" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Bills</TabsTrigger>
+                <TabsTrigger value="bills" >Bills</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Bills</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="maintenance" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Maintenance</TabsTrigger>
+                <TabsTrigger value="maintenance" >Maintenance</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Maintenance</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="medical-expenses" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Medical Expenses</TabsTrigger>
+                <TabsTrigger value="medical-expenses" >Medical Expenses</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Medical Expenses</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="general-expenses" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">General Expenses</TabsTrigger>
+                <TabsTrigger value="general-expenses" >General Expenses</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>General Expenses</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TabsTrigger value="social-media" className="whitespace-nowrap px-3 sm:px-4 hover:bg-primary/10 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground rounded-md transition-colors">Social Media</TabsTrigger>
+                <TabsTrigger value="social-media" >Social Media</TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>Social Media</TooltipContent>
             </Tooltip>
@@ -299,7 +307,7 @@ export default function OfficePage() {
           <DataTable
             title="Bills"
             data={(bills || []).map((item: any, index: number) => ({ ...item, no: index + 1 }))}
-            columns={officeColumns}
+            columns={BillColumns}
             onAdd={handleAdd}
             onEdit={handleEdit}
             onDelete={handleDelete}

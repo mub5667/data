@@ -44,12 +44,24 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
     const workbook = XLSX.readFile('attached_assets/ABEER 2025_1759717117628.xlsx');
     
     // Helper to robustly read numeric columns across inconsistent headers
-    const getNumber = (row: any, keys: string[]): number => {
+    const normalizeKey = (s: string) => s.toLowerCase().replace(/\s|_/g, '');
+    const getNumber = (row: any, keys: string[], fallbackKeywords?: string[]): number => {
       for (const k of keys) {
         if (Object.prototype.hasOwnProperty.call(row, k) && row[k] !== undefined && row[k] !== null && row[k] !== '') {
           const v = row[k];
-          const n = typeof v === 'string' ? Number(v.replace(/[,\s]/g, '')) : Number(v);
+          const n = typeof v === 'string' ? Number(v.replace(/[\,\s]/g, '')) : Number(v);
           if (!Number.isNaN(n)) return n;
+        }
+      }
+      if (fallbackKeywords && fallbackKeywords.length) {
+        const normalized = fallbackKeywords.map(normalizeKey);
+        for (const colKey of Object.keys(row)) {
+          const nk = normalizeKey(colKey);
+          if (normalized.some((kw) => nk.includes(kw))) {
+            const v = row[colKey];
+            const n = typeof v === 'string' ? Number(v.replace(/[\,\s]/g, '')) : Number(v);
+            if (!Number.isNaN(n)) return n;
+          }
         }
       }
       return 0;
@@ -61,9 +73,15 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
       return typeof dateRaw === 'number' ? excelDateToString(dateRaw) : String(dateRaw);
     };
 
+    // Helper: find sheet by partial name (case-insensitive)
+    const findSheet = (needleLower: string): string | undefined => {
+      return workbook.SheetNames.find((n) => n.toLowerCase().includes(needleLower));
+    };
+
     // Process Malaysia sheet - all columns
-    if (workbook.SheetNames.includes('Malaysia')) {
-      const malaysiaSheet = workbook.Sheets['Malaysia'];
+    const malaysiaSheetName = findSheet('malaysia');
+    if (malaysiaSheetName) {
+      const malaysiaSheet = workbook.Sheets[malaysiaSheetName];
       const malaysiaData = XLSX.utils.sheet_to_json(malaysiaSheet, { defval: '' }) as any[];
       
       let counter = 1;
@@ -75,12 +93,12 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
           no: counter++,
           date: date,
           country: 'Malaysia',
-          income: getNumber(row, ['INCOME', 'INCOME ', 'TOTAL INCOME', 'INCOME MALAYSIA', 'TOTAL INCOME MALAYSIA']),
-          office: getNumber(row, ['OFFICE', 'OFFICE ', 'MALAYSIA OFFICE', 'OFFICE MALAYSIA']),
+          income: getNumber(row, ['INCOME', 'INCOME ', 'TOTAL INCOME', 'INCOME MALAYSIA', 'TOTAL INCOME MALAYSIA'], ['income','totalincome','incomemalaysia','totalincomemalaysia']),
+          office: getNumber(row, ['OFFICE', 'OFFICE ', 'MALAYSIA OFFICE', 'OFFICE MALAYSIA'], ['office','malaysiaoffice','officemalaysia']),
           salaries: getNumber(row, ['SALARIES', 'SALARIES ']),
           subagent: getNumber(row, ['SUB AGENT', 'SUB AGENT ', 'Sub Agent']),
           socialmedia: getNumber(row, ['SOCIAL MEDIA', 'Social Media']),
-          outcome: getNumber(row, ['OUTCOME', 'OUTCOME ', 'OUT COME', 'TOTAL OUTCOME', 'TOTAL OUTCOME MALAYSIA']),
+          outcome: getNumber(row, ['OUTCOME', 'OUTCOME ', 'OUT COME', 'TOTAL OUTCOME', 'TOTAL OUTCOME MALAYSIA'], ['outcome','totaloutcome','outcomemalaysia','totaloutcomemalaysia']),
         });
       }
       console.log('Malaysia Income & Outcome data loaded to SQLite');
@@ -112,8 +130,9 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
     }
     
     // Process UAE sheet - limited columns
-    if (workbook.SheetNames.includes('UAE')) {
-      const uaeSheet = workbook.Sheets['UAE'];
+    const uaeSheetName = findSheet('uae');
+    if (uaeSheetName) {
+      const uaeSheet = workbook.Sheets[uaeSheetName];
       const uaeData = XLSX.utils.sheet_to_json(uaeSheet);
       
       let counter = 1;
@@ -126,7 +145,7 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
           no: counter++,
           date: date,
           country: 'UAE',
-          income: row['INCOME'] || 0,
+          income: row['INCOME'] || row['TOTAL INCOME'] || 0,
           office: 0, // Not displayed for UAE
           salaries: 0, // Not displayed for UAE
           subagent: 0, // Not displayed for UAE
@@ -138,8 +157,9 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
     }
     
     // Process Saudi Arabia sheet - limited columns
-    if (workbook.SheetNames.includes('SAUDI')) {
-      const saudiSheet = workbook.Sheets['SAUDI'];
+    const saudiSheetName = findSheet('saudi');
+    if (saudiSheetName) {
+      const saudiSheet = workbook.Sheets[saudiSheetName];
       const saudiData = XLSX.utils.sheet_to_json(saudiSheet, { defval: '' }) as any[];
       
       let counter = 1;
@@ -151,12 +171,12 @@ export async function loadIncomeOutcomeDataToSQLite(): Promise<void> {
           no: counter++,
           date: date,
           country: 'Saudi Arabia',
-          income: getNumber(row, ['INCOME', 'INCOME ', 'TOTAL INCOME', 'INCOME SAUDI', 'INCOME SAUDI ARABIA', 'INCOME KSA']),
+          income: getNumber(row, ['INCOME', 'INCOME ', 'TOTAL INCOME', 'INCOME SAUDI', 'INCOME SAUDI ARABIA', 'INCOME KSA'], ['income','totalsaudiincome','incomesaudi','incomeksa','incomesaudiarabia','totalincomesaudiarabia']),
           office: 0, // Not displayed for Saudi Arabia
           salaries: 0, // Not displayed for Saudi Arabia
           subagent: 0, // Not displayed for Saudi Arabia
           socialmedia: 0, // Not displayed for Saudi Arabia
-          outcome: getNumber(row, ['OUTCOME', 'OUTCOME ', 'OUT COME', 'TOTAL OUTCOME', 'OUTCOME SAUDI', 'OUTCOME SAUDI ARABIA', 'OUTCOME KSA']),
+          outcome: getNumber(row, ['OUTCOME', 'OUTCOME ', 'OUT COME', 'TOTAL OUTCOME', 'OUTCOME SAUDI', 'OUTCOME SAUDI ARABIA', 'OUTCOME KSA'], ['outcome','totalsaudioutcome','outcomesaudi','outcomeksa','outcomesaudiarabia','totaloutcomesaudiarabia']),
         });
       }
       console.log('Saudi Arabia Income & Outcome data loaded to SQLite');
@@ -754,7 +774,7 @@ export async function loadAbeerSheetsDataToSQLite(): Promise<void> {
     if (sheetNames.includes('Student Flight Ticket')) {
       const sheet = workbook.Sheets['Student Flight Ticket'];
       const data = XLSX.utils.sheet_to_json(sheet);
-      
+       
       for (const row of data) {
         await sqliteStorage.addStudentFlightTicketRecord({
           name: row['NAME'] || '',

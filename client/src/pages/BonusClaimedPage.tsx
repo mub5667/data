@@ -35,8 +35,7 @@ export default function BonusClaimedPage() {
     { key: "commission", label: "Commission" },
     { key: "rm", label: "RM" },
     { key: "usd", label: "USD" },
-    { key: "claimedDate", label: "Claimed Date" },
-    { key: "claimedBy", label: "Claimed By" },
+  
   ];
 
   // Helper function for API requests

@@ -95,7 +95,10 @@ function App() {
           <div className="flex h-screen w-full">
             <AppSidebar />
             <div className="flex flex-col flex-1 min-w-0">
-              <header className="sticky top-0 z-30 flex items-center justify-end gap-2 px-3 sm:px-4 py-3 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <header className="sticky top-0 z-30 flex items-center justify-between gap-2 px-3 sm:px-4 py-3 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="flex items-center gap-2">
+                  <SidebarTrigger className="md:hidden" aria-label="Toggle menu" />
+                </div>
                 <div className="flex items-center gap-2">
                   <ThemeToggle />
                 </div>

@@ -104,7 +104,11 @@ export function DataTable({ title, data, columns, onAdd, onEdit, onDelete, onExp
 
   const handleSave = () => {
     if (editingId && onEdit) {
-      onEdit(editingId, editedRow);
+      const payload = { ...editedRow } as DataRow;
+      if (payload["passportNumber"] && !payload["passport_number"]) {
+        payload["passport_number"] = payload["passportNumber"];
+      }
+      onEdit(editingId, payload);
     }
     setEditingId(null);
     setEditedRow({});
@@ -128,7 +132,11 @@ export function DataTable({ title, data, columns, onAdd, onEdit, onDelete, onExp
 
   const handleAdd = () => {
     if (onAdd) {
-      onAdd(newRow);
+      const payload = { ...newRow } as DataRow;
+      if (payload["passportNumber"] && !payload["passport_number"]) {
+        payload["passport_number"] = payload["passportNumber"];
+      }
+      onAdd(payload);
     }
     setNewRow({});
     setAddDialogOpen(false);
@@ -163,23 +171,49 @@ export function DataTable({ title, data, columns, onAdd, onEdit, onDelete, onExp
   };
 
   const exportToExcel = async () => {
-    if (datasetName) {
-      const response = await fetch(`/api/export/excel/${datasetName}`, {
-        method: 'POST',
+    const toCsvAndDownload = () => {
+      const header = columns.map((c) => c.label);
+      const rows = sortedData.map((row) => columns.map((c) => {
+        const val = row[c.key];
+        const str = val == null ? "" : String(val);
+        // Escape quotes and wrap if needed
+        const needsWrap = str.includes(",") || str.includes("\n") || str.includes("\"");
+        const escaped = str.replace(/\"/g, '""');
+        return needsWrap ? `"${escaped}"` : escaped;
+      }));
+      const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${datasetName || 'export'}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    };
+
+    // First try to generate an actual .xlsx on the client that mirrors exactly what's visible
+    try {
+      const XLSX = await import('xlsx');
+      const labeledRows = sortedData.map((row) => {
+        const obj: Record<string, any> = {};
+        columns.forEach((c) => {
+          obj[c.label] = row[c.key] ?? "";
+        });
+        return obj;
       });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${datasetName}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      const ws = XLSX.utils.json_to_sheet(labeledRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, (datasetName || 'Sheet1').slice(0, 31));
+      XLSX.writeFile(wb, `${datasetName || 'export'}.xlsx`);
+      return;
+    } catch (e) {
+      // If xlsx library isn't available in the client, fall back to CSV
     }
+
+    // Fallback to CSV reflecting the exact visible data
+    toCsvAndDownload();
   };
 
   const renderCellContent = (value: any, columnType?: string) => {

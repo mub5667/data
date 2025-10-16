@@ -57,7 +57,7 @@ export default function BonusAddPage() {
 
     setIsSearching(true);
     try {
-      const response = await fetch(`/api/students/search?passportNumber=${searchPassport}`);
+      const response = await fetch(`/api/students/search?passport=${searchPassport}`);
       if (!response.ok) {
         throw new Error("Failed to find student");
       }

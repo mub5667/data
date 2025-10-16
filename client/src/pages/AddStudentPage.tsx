@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, PillTabsList as TabsList, PillTabsTrigger as TabsTrigger } from "@/components/ui/tailwind-tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -113,7 +113,7 @@ export default function AddStudentPage() {
 
     setIsSearching(true);
     try {
-      const response = await apiRequest(`/api/students/search?passportNumber=${searchPassport}`, "GET");
+      const response = await apiRequest(`/api/students/search?passport=${searchPassport}`, "GET");
       if (response) {
         setStudentFound(response);
         toast({ title: "Student found" });
@@ -511,7 +511,7 @@ export default function AddStudentPage() {
       </div>
 
       <Tabs defaultValue="new" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 w-full gap-1 md:gap-2 max-w-4xl mx-auto">
+        <TabsList className="flex w-full gap-5 mb-3 overflow-x-auto p-1 bg-card rounded-lg">
           <TabsTrigger value="new" className="text-xs md:text-sm px-2 py-2">New Student</TabsTrigger>
           <TabsTrigger value="val-approval" className="text-xs md:text-sm px-2 py-2">Val Approval</TabsTrigger>
           <TabsTrigger value="enrollment" className="text-xs md:text-sm px-2 py-2">Enrollment</TabsTrigger>
